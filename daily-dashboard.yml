@@ -1,0 +1,32 @@
+name: Reggeli Riport Dashboard
+
+on:
+  schedule:
+    - cron: '0 4 * * *'  # Minden nap reggel 6:00 (UTC+2, tehat 04:00 UTC)
+  workflow_dispatch:      # Manualisan is futtathato
+
+jobs:
+  generate-dashboard:
+    runs-on: windows-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Generate Dashboard
+        shell: pwsh
+        run: |
+          Write-Host "Dashboard generalas..."
+          ./reggeli_riport.ps1
+        env:
+          # SharePoint auth (ha kell - kesobb)
+          SP_TENANT_ID: ${{ secrets.SP_TENANT_ID }}
+          SP_CLIENT_ID: ${{ secrets.SP_CLIENT_ID }}
+          SP_CLIENT_SECRET: ${{ secrets.SP_CLIENT_SECRET }}
+      
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: .
+          publish_branch: gh-pages
