@@ -202,19 +202,19 @@ A kiértékelés sorrendje garantálja, hogy **minden lehetséges végállapotho
 
 - **Hang:** a böngésző hangmotorjával generált, saját hangok: dübörgő drón (infrahang-imitáció), rádiósistergés, szívverés, ijesztő hanghatások, lépések, vihar, karcos keringő (saját szerzemény), és a számállomás gépi hangja (beszédszintézis).
 - ⚠️ **A „Szomorú vasárnap” eredeti dallama még szerzői jogvédett** (Seress Rezső 1968-ban halt meg, a védelem 2038 végéig tart). Ezért **csak a címre utalunk**, a zene saját, hasonló hangulatú keringő lesz.
-- **Látvány:** nem fotórealisztikus. Stilizált, sötét, filmes kinézet: SVG/CSS-ben rajzolt sziluettek és helyszínek, zseblámpafény-effekt, VHS-zaj, felvillanások, remegés, hirtelen vágások. Sok rövid, gyors jelenet, kevés szöveg.
+- **Látvány (végleges):** a helyszínek **szabad licencű valódi fotókból** készülnek (CC0, közkincs, CC BY, CC BY-SA – a forrásokat a stáblista sorolja fel). Ezeket egységes filmes színezés kapcsolja össze (az éjszakai jelenetek „day-for-night” technikával), lassú kameramozgás, és dinamikus rétegek: eső, köd, villám, vibráló neon, zseblámpafény, vörös vészvilágítás, tűz, por. A végső képet WebGL utómunka teszi filmszerűvé: szemcse, bloom, kromatikus aberráció, VHS-mód, és a Rezonátor hatására erősödő hallucinációs torzítás. Az ijesztések szándékosan „kevesebb több” elven működnek: villanásnyi sötét alakok, nem részletes szörnyrajzok.
 
 ---
 
 ## 9. A munka lépései
 
-1. ✅ **Sztori-biblia** (ez a dokumentum) → **jóváhagyásra vár**
-2. Jelenetszintű forgatókönyv minden ággal + **automata logikai teszt** (elérhetőség, zsákutcák, ellentmondások)
-3. Játékmotor: jelenetkezelő, rejtett döntések, QTE, billentyűzet + kontroller, mentés, döntési fa
-4. Hang és látvány
-5. Tartalom beépítése fejezetenként, és minden fejezet után ellenőrzés (logika + élmény)
-6. Teljes tesztjáték (automata + kézi átnézés), finomhangolás
-7. Közzététel (link, amit egyszerűen megnyithattok)
+1. ✅ **Sztori-biblia** (ez a dokumentum)
+2. ✅ Jelenetszintű forgatókönyv minden ággal (`story/`) + **automata logikai teszt** (`test/logika.js`)
+3. ✅ Játékmotor (`engine/game.js`, `engine/input.js`)
+4. ✅ Hang és látvány (`engine/audio.js`, `engine/render.js`, `engine/scenes.js`)
+5. ✅ Tartalom beépítése fejezetenként, és minden fejezet után ellenőrzés (logika + élmény)
+6. ✅ Teljes tesztjáték (automata + böngészős), finomhangolás
+7. ✅ Közzététel (link, amit egyszerűen megnyithattok)
 
 ---
 
@@ -232,3 +232,24 @@ A kiértékelés sorrendje garantálja, hogy **minden lehetséges végállapotho
 | Miért éppen vasárnap minden? | Kardos 1988-ban vasárnap tesztelt, mert akkor kevesebb a felügyelet. Azóta rituálisan ragaszkodik hozzá. Erre a játékban Rita naplója utal. |
 | Mi történik, ha a játékosok nem indítják el a generátort? | Kardos indítja el. A történet így is halad, de ez a „Ki kapcsolta be?” fordulattal még ijesztőbb. |
 | Hogyan nyílik az Archívum, ha az egyik főszereplő meghalt? | Sándor fordítja a másik kulcsot. Ha ő sem lehet ott, az Archívum zárva marad, és a lehetséges befejezések: 8, 7 vagy 9. |
+
+---
+
+## 11. Végleges változások a fejlesztés közben (a kánon része)
+
+A forgatókönyv írásakor a logikai ellenőrzés néhány pontot pontosított. Ezek most már a kánon részei:
+
+| Téma | Végleges megoldás | Miért |
+|---|---|---|
+| A dossziék helye | **Kardos kocsijának kesztyűtartójában** vannak, a kapuháznál (4. fejezet), nem az irodában | A dosszié a mai napon készült fotót is tartalmazza, ezt csak Kardos hordhatja magánál. |
+| Az „előjel-kazetták” | Nem természetfelettiek: **Sándor felvételei** 1998-ból (Rita és Zoltán hangja). Sándor a hangosbemondó vonalát a kunyhójába kötötte, és figyelmeztetésül hagyja ott őket. | Így minden „előérzet” racionálisan magyarázható, és a ciklusosság („mindig ugyanaz lesz”) a téma része lesz. |
+| A walkie-talkie | **Két** készülék van. Máté készülékén a beszélőgomb **le van ragasztva**: Kardos mindent hall. Ha gyanút fogtok, kiiktathatjátok, és a fináléban **lesből** támadhattok. | Megmagyarázza, honnan tud Kardos mindenről, és jutalmazza a figyelmes játékost. |
+| Kertész kilétének lelepleződése | Három független forrásból jöhet: Sándor vallomása, a kocsiban talált dosszié, vagy az 1988-as szalag a széfben. | Bármelyik ágon kiderülhet, egyiken sem logikátlan. |
+| A Rezonátor kikapcsolása | A -2-n a lehegesztett szekrényt fejszével feltörve (egyéni QTE), vagy a toronytövi aknában a kábelt elvágva (közös QTE). Kell hozzá a kapcsolási rajz vagy Sándor (vagy Sándor cetlije). | Csak az kapcsolhatja ki, aki tud róla. |
+| Tükörjelenet: ha **mindketten** támadtok | Karnyújtásnyiról mindketten halálosan találtok. Csak Sándor tud közbelépni, ha él. | A fegyverek szerinti „győztes” logika ellentmondott volna a jelenetnek, és sosem lett volna elérhető. |
+| Tükörjelenet: ha az egyik támad | A másik meghal, **kivéve**, ha kimondta a nevedet, és a bizalom ≥ 7. Ilyenkor egy „ÁLLJ MEG!” QTE dönt. | A bizalomnak itt van a legnagyobb tétje. |
+| Ha egy főszereplő meghal | A játékosa **Sándort** irányítja (ha él és szövetséges), különben **Kardost** (amíg az aktív), különben néző. | Senki nem marad tétlen. Kardosként a saját párod után lőhetsz, ami a játék legkegyetlenebb csavarja. |
+| A jelzőpisztoly | **Két patron**: aki korábban lövöldözött, annak a fináléban üres lehet. | Az erőforrás-gazdálkodás is döntés. |
+| „Alku” befejezés | Kardos nem zárja be a párt: „Ki hinne maguknak? Szén-monoxid.” | A bezárás logikailag nem működött volna (kulcsok, ajtó). |
+
+A logikát automata teszt ellenőrzi (`node test/logika.js`): több százezer véletlen végigjátszás, mind a 10 befejezés és mind a 196 jelenet elérhető, nincs zsákutca, és halott szereplő nem szólal meg.

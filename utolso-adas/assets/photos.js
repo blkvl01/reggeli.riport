@@ -22,5 +22,6 @@ window.PHOTO_CREDITS = [
  "„Video tape archive (6498650083)” – DRs  Kulturarvsprojekt from Copenhagen, Danmark – CC BY-SA 2.0 – https://commons.wikimedia.org/wiki/File:Video_tape_archive_(6498650083).jpg",
  "„WW2 Bunker Museum (Blindage Museum Музей Бункер Battle of Königsberg Museum) Kaliningrad, Russia 2017-10-29 - 43456623455” – ftrc – CC BY-SA 2.0 – https://commons.wikimedia.org/wiki/File:WW2_Bunker_Museum_(Blindage_Museum_%D0%9C%D1%83%D0%B7%D0%B5%D0%B9_%D0%91%D1%83%D0%BD%D0%BA%D0%B5%D1%80_Battle_of_K%C3%B6nigsberg_Museum)_Kaliningrad,_Russia_2017-10-29_-_43456623455.jpg",
  "„bunk-beds” – rezendi – CC BY 2.0 – https://www.flickr.com/photos/12601730@N00/123448832",
- "„car driving through foggy woods” – Chris_Kluepfel – CC BY 2.0 – https://www.flickr.com/photos/62058602@N06/54325270359"
+ "„car driving through foggy woods” – Chris_Kluepfel – CC BY 2.0 – https://www.flickr.com/photos/62058602@N06/54325270359",
+ "„gas! gas! gas!” – greg westfall. – CC BY 2.0 – https://www.flickr.com/photos/37129284@N02/7619160304"
 ];

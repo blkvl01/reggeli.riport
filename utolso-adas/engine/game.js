@@ -468,7 +468,13 @@
   }
 
   // ------------------------------------------------------------ fő ciklus
+  function resetUI() {
+    hideSubs(); hideDoc();
+    for (const k of ['choice', 'qte', 'card', 'private']) { UI[k].className = ''; UI[k].innerHTML = ''; }
+    UI.vhs.classList.remove('show');
+  }
   async function play(id) {
+    resetUI();
     G.inGame = true;
     const run = (G.runId = (G.runId || 0) + 1);
     const s = G.s;
@@ -597,7 +603,8 @@
 
   function titleScreen() {
     G.inGame = false; G.paused = false;
-    hideSubs(); hideDoc(); UI.choice.className = ''; UI.qte.className = ''; UI.card.className = ''; UI.private.className = '';
+    G.runId = (G.runId || 0) + 1;
+    resetUI();
     R.setScene('gate_night'); R.setHallu(0); R.setVhs(false); R.setDark(0);
     AU.music('wind');
     const save = store.get(KEY.save, null);

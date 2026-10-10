@@ -12,7 +12,7 @@
     fx: { mastDraw: [0.72, 0.6, 0.08, 46], mastC: '#16100e', mast: [0.72, 0.085], fog: [0.48, 0.32, 8, 0.28, '#d09078'], fog2: [0.7, 0.3, 14, 0.18, '#a07070'] } };
   P.gate_night = { img: 'fence', g: { b: 0.95, c: 1.2, s: 0.5, night: 1 }, kb: [1.05, 1.12, 0, -0.01],
     fx: { mastDraw: [0.72, 0.6, 0.08, 46], mastC: '#05070a', mast: [0.72, 0.085], fog: [0.5, 0.3, 8, 0.3, '#56657e'], rain: 0.55, storm: 0 } };
-  P.gatehouse = { img: 'fence', g: { b: 0.85, c: 1.25, s: 0.45, night: 1 }, kb: [1.1, 1.16, 0.06, 0], hand: 1,
+  P.gatehouse = { img: 'fence', g: { b: 0.85, c: 1.25, s: 0.45, night: 1 }, kb: [1.1, 1.16, 0.04, 0], hand: 1,
     fx: { window: [0.13, 0.38], fog: [0.55, 0.32, 20, 0.3, '#3a4658'], rain: 0.95, storm: 1, volvo: [0.3, 0.97, 0.95] } };
   P.courtyard = { img: 'station', g: { b: 0.95, c: 1.2, s: 0.5, night: 1 }, kb: [1.03, 1.1, -0.01, 0],
     fx: { mastDraw: [0.2, 0.62, -0.05, 90], mastC: '#04060a', mast: [0.2, -0.02], windows: [[0.66, 0.45, 70], [0.74, 0.45, 60], [0.56, 0.47, 45]], fog: [0.6, 0.3, 10, 0.22, '#4a5870'] } };
@@ -20,7 +20,7 @@
     fx: { mastDraw: [0.2, 0.62, -0.05, 90], mastC: '#020305', mast: [0.2, -0.02], windows: [[0.66, 0.45, 70], [0.74, 0.45, 60]], fog: [0.55, 0.35, 40, 0.3, '#2c3646'], rain: 1, rainAngle: -0.4, storm: 1 } };
   P.courtyard_dawn = { img: 'station', g: { b: 0.62, c: 1.1, s: 0.4, sep: 0.15, tint: ['#c0a0a0', 0.3, 'soft-light'] }, kb: [1.02, 1.07, 0, 0],
     fx: { mastDraw: [0.2, 0.62, -0.05, 90], mastC: '#2a2228', fog: [0.6, 0.35, 5, 0.4, '#e8cfc0'] } };
-  P.tower_storm = { img: 'pylon', g: { b: 0.85, c: 1.35, s: 0.3, night: 1 }, kb: [1.03, 1.12, 0, 0.02], hand: 1,
+  P.tower_storm = { img: 'pylon', g: { b: 0.85, c: 1.35, s: 0.3, night: 1 }, kb: [1.03, 1.12, 0, 0.01], hand: 1,
     fx: { fog: [0.0, 0.5, 60, 0.35, '#1f2836'], rain: 1, rainAngle: -0.45, storm: 1, mast: [0.5, 0.06] } };
   P.forest_storm = { img: 'forest', g: { b: 0.8, c: 1.2, s: 0.5, h: 10 }, kb: [1.04, 1.12, 0, 0], hand: 1,
     fx: { dark: 0.62, beams: 2, beamAt: [0.5, 0.6], rain: 1, storm: 1, fog: [0.5, 0.4, 25, 0.25, '#30384a'] } };
@@ -38,9 +38,9 @@
   P.stairs = { img: 'stairs', g: { b: 0.95, c: 1.2, s: 0.5, tint: COOL }, kb: [1.04, 1.12, 0, 0.01], hand: 1, fx: { dark: 0.78, beams: 2, beamAt: [0.55, 0.55], dust: 0.3 } };
   P.stairs_red = { img: 'stairs', g: { b: 0.7, c: 1.25, s: 0.3 }, kb: [1.04, 1.12, 0, 0.01], fx: { red: 1 } };
   P.shaft = { img: 'shaft', g: { b: 0.6, c: 1.3, s: 0.4 }, kb: [1.0, 1.15, 0, 0], fx: { red: 0.8, dust: 0.3 } };
-  P.firedoor = { img: 'firedoor', g: { b: 0.65, c: 1.2, s: 0.4 }, kb: [1.03, 1.08, 0, 0], fx: { red: 0.9 } };
-  P.firedoor_breach = { img: 'firedoor', g: { b: 0.65, c: 1.2, s: 0.4 }, kb: [1.05, 1.08, 0, 0], hand: 1, fx: { red: 0.9, hole: [0.29, 0.34, 0.085] } };
-  P.firedoor_red = { img: 'firedoor', g: { b: 0.5, c: 1.3, s: 0.3 }, kb: [1.06, 1.1, 0, 0], fx: { red: 1.2, hole: [0.29, 0.34, 0.085] } };
+  P.firedoor = { img: 'firedoor', g: { b: 0.65, c: 1.2, s: 0.4 }, kb: [1.03, 1.08, 0, 0], fx: { plate: [0.302, 0.375, 0.27, 0.075, 'VÉSZKIJÁRAT'], red: 0.9 } };
+  P.firedoor_breach = { img: 'firedoor', g: { b: 0.65, c: 1.2, s: 0.4 }, kb: [1.05, 1.08, 0, 0], hand: 1, fx: { plate: [0.302, 0.375, 0.27, 0.075, 'VÉSZKIJÁRAT'], red: 0.9, hole: [0.29, 0.34, 0.085] } };
+  P.firedoor_red = { img: 'firedoor', g: { b: 0.5, c: 1.3, s: 0.3 }, kb: [1.06, 1.1, 0, 0], fx: { plate: [0.302, 0.375, 0.27, 0.075, 'VÉSZKIJÁRAT'], red: 1.2, hole: [0.29, 0.34, 0.085] } };
   P.minus3_door = { img: 'blastdoor', g: { b: 0.7, c: 1.2, s: 0.45, tint: COOL }, kb: [1.03, 1.1, 0, 0], hand: 1,
     fx: { sign: [0.52, 0.42, 'LEZÁRVA – 1989'], panel: [0.86, 0.5], dark: 0.85, beams: 2, beamAt: [0.5, 0.45] } };
   P.vault = { img: 'vault', g: { b: 0.9, c: 1.15, s: 0.45, tint: COOL }, kb: [1.03, 1.1, -0.01, 0], hand: 1, fx: { dark: 0.72, beams: 2, beamAt: [0.45, 0.45], beamSpread: 380, dust: 0.3 } };
@@ -58,8 +58,9 @@
   P.office = { img: 'office', g: { b: 0.9, c: 1.2, s: 0.5, sep: 0.25 }, kb: [1.03, 1.1, 0, 0], hand: 1,
     fx: { lamp: [0.68, 0.55, 280], dark: 0.85, lampMask: [0.65, 0.6, 420], beams: 1, beamAt: [0.35, 0.5], dust: 0.4 } };
   P.guard_room = { img: 'lockers', g: { b: 0.8, c: 1.15, s: 0.45, tint: COOL }, kb: [1.03, 1.1, 0, 0], fx: { flicker: 7, flickerSeed: 55, dust: 0.3 } };
-  P.barracks = { img: 'barracks', g: { b: 0.6, c: 1.25, s: 0.35, tint: COOL }, kb: [1.03, 1.1, 0, 0], hand: 1, fx: { dark: 0.9, beams: 1, beamAt: [0.5, 0.6] } };
+  P.barracks = { img: 'barracks', g: { b: 0.85, c: 1.25, s: 0.35, tint: COOL }, kb: [1.03, 1.1, 0, 0], hand: 1, fx: { dark: 0.76, beams: 1, beamAt: [0.5, 0.6] } };
   P.asylum = { img: 'asylum', g: { b: 0.95, c: 1.1, s: 0.2, tint: ['#9ab0c0', 0.3, 'soft-light'] }, kb: [1.02, 1.08, 0, 0], fx: { dust: 0.25 } };
   P.workshop_night = { img: 'dial', g: { b: 0.9, c: 1.15, s: 0.7 }, kb: [1.02, 1.12, 0, 0], fx: { dialGlow: [0.5, 0.45] } };
   root.R.preload();
+  root.R.loadImg('mask_close');
 })(window);

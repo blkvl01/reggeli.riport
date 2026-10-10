@@ -1267,73 +1267,234 @@
     dust(ctx, t, 0.3);
   };
 
-  // ---------------------------------------------------------------- IJESZTÉSEK (rövid, teljes képernyős rajzok)
+  // ---------------------------------------------------------------- IJESZTÉSEK
+  // „Kevesebb több”: sötét, zajos, remegő formák, csak villanásnyi részletekkel.
   const JUMP = {};
-  JUMP.creature = (ctx, t) => {
-    ctx.fillStyle = 'rgba(0,0,0,0.6)'; ctx.fillRect(0, 0, W, H);
-    creature(ctx, W * 0.5, H * 1.15, H * 1.25, t, 1);
-  };
-  JUMP.gasmask = (ctx, t) => {
-    ctx.fillStyle = '#020202'; ctx.fillRect(0, 0, W, H);
-    const cx = W / 2 + Math.sin(t * 30) * 4, cy = H * 0.52;
-    const g = ctx.createRadialGradient(cx, cy + 80, 20, cx, cy, 420);
-    g.addColorStop(0, '#3a3e38'); g.addColorStop(1, '#0a0b0a');
-    ctx.fillStyle = g;
-    ctx.beginPath(); ctx.ellipse(cx, cy, 300, 360, 0, 0, TAU); ctx.fill();
-    texFill(ctx, (c) => { c.beginPath(); c.ellipse(cx, cy, 300, 360, 0, 0, TAU); }, TX.n1, 0.6, 'overlay', 0.4);
-    // szemüvegek
-    for (const s of [-1, 1]) {
-      const ex = cx + s * 120, ey = cy - 60;
-      ctx.fillStyle = '#1a1c1c'; ctx.beginPath(); ctx.arc(ex, ey, 92, 0, TAU); ctx.fill();
-      const lg = ctx.createRadialGradient(ex - 25, ey - 30, 5, ex, ey, 80);
-      lg.addColorStop(0, 'rgba(200,220,210,0.55)'); lg.addColorStop(0.3, 'rgba(40,60,55,0.7)'); lg.addColorStop(1, 'rgba(5,8,8,1)');
-      ctx.fillStyle = lg; ctx.beginPath(); ctx.arc(ex, ey, 76, 0, TAU); ctx.fill();
-      ctx.fillStyle = 'rgba(180,20,10,0.8)'; ctx.beginPath(); ctx.arc(ex + 6, ey + 8, 9, 0, TAU); ctx.fill(); // véreres szem mögötte
+  const JC = { c: null };
+  function jitter(t, amp) { const k = Math.floor(t * 14); const r = rng(k * 31 + 7); return [(r() - 0.5) * amp, (r() - 0.5) * amp, (r() - 0.5) * 0.04]; }
+
+  // Árnyéklény: megnyúlt test, térdig érő karok, oldalra billent fej
+  function shadowBeing(ctx, cx, base, h, t, opts) {
+    opts = opts || {};
+    if (!JC.c) JC.c = mk(W, H);
+    const c = JC.c, x = c.getContext('2d');
+    x.clearRect(0, 0, W, H);
+    const [jx, jy, jr] = jitter(t, opts.calm ? 2 : 9);
+    x.save(); x.translate(cx + jx, base + jy); x.rotate(jr); const k = h / 400; x.scale(k, k);
+    x.fillStyle = '#000';
+    x.beginPath();
+    // lábak
+    x.moveTo(-26, 0); x.lineTo(-18, -150); x.lineTo(-8, -150); x.lineTo(-4, 0); x.lineTo(6, 0); x.lineTo(10, -150); x.lineTo(22, -150); x.lineTo(30, 0); x.closePath(); x.fill();
+    // törzs (görnyedt, aszimmetrikus váll)
+    x.beginPath(); x.moveTo(-30, -140); x.quadraticCurveTo(-46, -230, -38, -300); x.quadraticCurveTo(-10, -325, 34, -296); x.quadraticCurveTo(44, -220, 30, -140); x.closePath(); x.fill();
+    // karok: túl hosszúak
+    x.lineCap = 'round'; x.strokeStyle = '#000';
+    x.lineWidth = 13; x.beginPath(); x.moveTo(-34, -290); x.quadraticCurveTo(-70, -200, -60, -60); x.quadraticCurveTo(-58, -20, -70, 10); x.stroke();
+    x.lineWidth = 11; x.beginPath(); x.moveTo(32, -286); x.quadraticCurveTo(64, -190, 58, -80); x.quadraticCurveTo(56, -40, 66, -6); x.stroke();
+    // ujjak
+    x.lineWidth = 3;
+    for (let i = 0; i < 4; i++) { x.beginPath(); x.moveTo(-70, 10); x.lineTo(-78 + i * 5, 34 + i * 2); x.stroke(); x.beginPath(); x.moveTo(66, -6); x.lineTo(60 + i * 5, 20 + i * 3); x.stroke(); }
+    // nyak és eltört szögben lógó fej
+    x.lineWidth = 9; x.beginPath(); x.moveTo(4, -305); x.quadraticCurveTo(16, -330, 34, -338); x.stroke();
+    x.save(); x.translate(40, -342); x.rotate(1.25 + Math.sin(t * 1.3) * 0.06);
+    x.beginPath(); x.ellipse(0, -18, 15, 26, 0, 0, TAU); x.fill();
+    x.restore();
+    x.restore();
+    // füstös perem: elmosott másolatok, aztán éles mag
+    ctx.save();
+    ctx.globalAlpha = 0.55; ctx.filter = 'blur(10px)'; ctx.drawImage(c, 0, 0);
+    ctx.globalAlpha = 0.8; ctx.filter = 'blur(3px)'; ctx.drawImage(c, 3, 0);
+    ctx.filter = 'none'; ctx.globalAlpha = 0.95; ctx.drawImage(c, 0, 0);
+    ctx.restore();
+    // glitch-szeletek
+    if (!opts.calm && Math.floor(t * 9) % 3 === 0) {
+      const r = rng(Math.floor(t * 9));
+      for (let i = 0; i < 4; i++) {
+        const y = base - h * r(), sh = 4 + r() * 18, dx = (r() - 0.5) * 60;
+        ctx.save(); ctx.globalAlpha = 0.7; ctx.drawImage(c, 0, y, W, sh, dx, y, W, sh); ctx.restore();
+      }
     }
-    // szűrő
-    ctx.fillStyle = '#222'; ctx.beginPath(); ctx.ellipse(cx, cy + 190, 110, 120, 0, 0, TAU); ctx.fill();
-    ctx.strokeStyle = '#3a3a3a'; ctx.lineWidth = 6;
-    for (let i = 0; i < 6; i++) { ctx.beginPath(); ctx.ellipse(cx, cy + 190, 100 - i * 14, 108 - i * 15, 0, 0, TAU); ctx.stroke(); }
+    // szemcsillanás
+    const hx = cx + jx + (40 + 22) * (h / 400), hy = base + jy - 352 * (h / 400);
+    ctx.save(); ctx.globalCompositeOperation = 'lighter';
+    glow(ctx, hx, hy, 10 * (h / 400), 'rgba(220,230,255,A)', 0.7); glow(ctx, hx - 12 * (h / 400), hy + 8 * (h / 400), 7 * (h / 400), 'rgba(220,230,255,A)', 0.5);
+    ctx.restore();
+  }
+
+  JUMP.creature = (ctx, t) => {
+    ctx.fillStyle = 'rgba(0,0,0,0.45)'; ctx.fillRect(0, 0, W, H);
+    shadowBeing(ctx, W * 0.5, H * 1.02, H * 0.98, t);
+    const g = ctx.createRadialGradient(W / 2, H / 2, H * 0.2, W / 2, H / 2, W * 0.7);
+    g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(1, 'rgba(0,0,0,0.85)');
+    ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
   };
-  const holeAt = () => (R.holePos ? R.holePos : [W * 0.5, H * 0.36, 120]);
+  R.shadowBeing = shadowBeing;
+
+  // Gázálarc közelről: fotó, ha van; különben sötét, részletes rajz
+  JUMP.gasmask = (ctx, t) => {
+    const im = IMG.mask_close;
+    const [jx, jy] = jitter(t, 6);
+    ctx.fillStyle = '#000'; ctx.fillRect(0, 0, W, H);
+    if (im && im._ok) {
+      const z = 1.15 + t * 0.25;
+      ctx.save(); ctx.translate(W / 2 + jx, H / 2 + jy); ctx.scale(z, z);
+      ctx.filter = 'contrast(1.5) brightness(0.75) saturate(0.4)';
+      // csak a fej: a forrás felső-középső része
+      const sw = im.width * 0.62, sh = im.height * 0.56, sx = im.width * 0.17, sy = 0;
+      const w = H * (sw / sh);
+      ctx.drawImage(im, sx, sy, sw, sh, -w / 2, -H / 2, w, H);
+      ctx.filter = 'none'; ctx.restore();
+    } else {
+      const cx = W / 2 + jx, cy = H * 0.55 + jy;
+      const skin = ctx.createRadialGradient(cx, cy + 120, 30, cx, cy, 460);
+      skin.addColorStop(0, '#2c302a'); skin.addColorStop(1, '#050605');
+      ctx.fillStyle = skin; ctx.beginPath(); ctx.ellipse(cx, cy, 330, 420, 0, 0, TAU); ctx.fill();
+      ctx.save(); ctx.beginPath(); ctx.ellipse(cx, cy, 330, 420, 0, 0, TAU); ctx.clip();
+      ctx.globalCompositeOperation = 'overlay'; ctx.globalAlpha = 0.7; ctx.drawImage(TX.n1, cx - 400, cy - 450, 800, 900); ctx.drawImage(TX.fine, cx - 400, cy - 450, 800, 900);
+      ctx.restore();
+      for (const sx of [-1, 1]) {
+        const ex = cx + sx * 130, ey = cy - 90;
+        ctx.fillStyle = '#0c0d0c'; ctx.beginPath(); ctx.arc(ex, ey, 104, 0, TAU); ctx.fill();
+        const lg = ctx.createRadialGradient(ex - 30, ey - 40, 4, ex, ey, 86);
+        lg.addColorStop(0, 'rgba(190,210,200,0.5)'); lg.addColorStop(0.25, 'rgba(25,35,32,0.85)'); lg.addColorStop(1, '#020303');
+        ctx.fillStyle = lg; ctx.beginPath(); ctx.arc(ex, ey, 86, 0, TAU); ctx.fill();
+        ctx.save(); ctx.globalCompositeOperation = 'lighter'; glow(ctx, ex + sx * 8, ey + 10, 26, 'rgba(255,40,30,A)', 0.55); ctx.restore();
+      }
+      ctx.fillStyle = '#0b0b0b'; ctx.beginPath(); ctx.ellipse(cx, cy + 210, 120, 130, 0, 0, TAU); ctx.fill();
+      ctx.strokeStyle = 'rgba(80,80,80,0.5)'; ctx.lineWidth = 3;
+      for (let i = 0; i < 7; i++) { ctx.beginPath(); ctx.ellipse(cx, cy + 210, 110 - i * 14, 118 - i * 15, 0, 0, TAU); ctx.stroke(); }
+    }
+    const g = ctx.createRadialGradient(W / 2, H / 2, H * 0.25, W / 2, H / 2, W * 0.65);
+    g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(1, 'rgba(0,0,0,0.9)'); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  };
+
+  const holeAt = () => (R.holePos ? R.holePos : [W * 0.5, H * 0.36, 110]);
+  function holeClip(ctx) { const [hx, hy, r] = holeAt(); ctx.beginPath(); ctx.ellipse(hx, hy, r * 1.05, r * 0.95, 0, 0, TAU); ctx.clip(); return [hx, hy, r]; }
+
+  // A hallucináló szemével: a sötétből előderengő, megnyúlt szürke arc, szemgödrök, vékony fogak
   JUMP.door_creature = (ctx, t) => {
-    const [cx, cy] = holeAt();
-    ctx.save(); ctx.beginPath(); ctx.ellipse(cx, cy, 120, 105, 0, 0, TAU); ctx.clip();
-    const g = ctx.createRadialGradient(cx, cy, 10, cx, cy, 150); g.addColorStop(0, '#6a6a62'); g.addColorStop(1, '#151514');
-    ctx.fillStyle = g; ctx.fillRect(cx - 150, cy - 130, 300, 260);
-    texFill(ctx, (c) => c.rect(cx - 150, cy - 130, 300, 260), TX.fine, 0.7, 'overlay', 1.5);
-    ctx.fillStyle = '#000'; ctx.beginPath(); ctx.ellipse(cx - 45, cy - 30, 26, 32, 0.2, 0, TAU); ctx.ellipse(cx + 45, cy - 30, 26, 32, -0.2, 0, TAU); ctx.fill();
-    ctx.fillStyle = '#100404'; ctx.beginPath(); ctx.ellipse(cx, cy + 50, 70, 40 + Math.sin(t * 20) * 6, 0, 0, TAU); ctx.fill();
-    ctx.fillStyle = '#d8d0b0';
-    for (let i = 0; i < 14; i++) { const x = cx - 60 + i * 9; quad(ctx, [x, cy + 22, x + 7, cy + 22, x + 3.5, cy + 46]); ctx.fill(); quad(ctx, [x, cy + 82, x + 7, cy + 82, x + 3.5, cy + 58]); ctx.fill(); }
+    const [jx, jy, jr] = jitter(t, 6);
+    ctx.save();
+    const [hx0, hy0, r] = holeClip(ctx);
+    ctx.fillStyle = '#020101'; ctx.fillRect(hx0 - r * 2, hy0 - r * 2, r * 4, r * 4);
+    const hx = hx0 + jx, hy = hy0 + jy;
+    ctx.translate(hx, hy); ctx.rotate(0.18 + jr); ctx.translate(-hx, -hy);
+    // arc: elnyújtott, alulról vörösen megvilágítva, a szélein beleolvad a sötétbe
+    ctx.save(); ctx.beginPath(); ctx.ellipse(hx, hy + r * 0.1, r * 0.62, r * 1.05, 0, 0, TAU); ctx.clip();
+    const sk = ctx.createRadialGradient(hx, hy + r * 0.55, r * 0.05, hx, hy, r * 1.05);
+    sk.addColorStop(0, '#8a6a62'); sk.addColorStop(0.45, '#4a4a44'); sk.addColorStop(1, 'rgba(10,10,9,0)');
+    ctx.fillStyle = sk; ctx.fillRect(hx - r, hy - r * 1.1, r * 2, r * 2.4);
+    ctx.globalCompositeOperation = 'overlay'; ctx.globalAlpha = 0.9; ctx.drawImage(TX.fine, hx - r, hy - r * 1.1, r * 2, r * 2.4); ctx.globalAlpha = 1;
+    ctx.globalCompositeOperation = 'source-over';
+    // szemgödrök
+    for (const sx of [-1, 1]) {
+      const ex = hx + sx * r * 0.24, ey = hy - r * 0.18;
+      const g = ctx.createRadialGradient(ex, ey, 1, ex, ey + r * 0.05, r * 0.26);
+      g.addColorStop(0, '#000'); g.addColorStop(0.55, 'rgba(0,0,0,0.92)'); g.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = g; ctx.beginPath(); ctx.ellipse(ex, ey, r * 0.2, r * 0.3, sx * 0.3, 0, TAU); ctx.fill();
+    }
+    // száj: fekete, nedves rés, kevés hosszú, ferde fog
+    const mo = 0.2 + 0.08 * Math.sin(t * 19);
+    const mg = ctx.createRadialGradient(hx, hy + r * 0.5, 2, hx, hy + r * 0.5, r * 0.45);
+    mg.addColorStop(0, '#000'); mg.addColorStop(0.7, 'rgba(5,0,0,0.95)'); mg.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = mg; ctx.beginPath(); ctx.ellipse(hx, hy + r * 0.52, r * 0.36, r * mo + r * 0.06, 0, 0, TAU); ctx.fill();
+    const rr = rng(9);
+    for (let i = 0; i < 9; i++) {
+      const top = i % 2 === 0, u = (i / 8 - 0.5) * 2;
+      const bx = hx + u * r * 0.3 + (rr() - 0.5) * 6, by = hy + r * 0.52 + (top ? -1 : 1) * r * mo;
+      const len = r * (0.1 + rr() * 0.18);
+      ctx.strokeStyle = `rgba(${190 - rr() * 40},${180 - rr() * 40},150,0.85)`; ctx.lineWidth = 1.5 + rr() * 2.5;
+      ctx.beginPath(); ctx.moveTo(bx, by); ctx.lineTo(bx + (rr() - 0.5) * 8, by + (top ? 1 : -1) * len); ctx.stroke();
+    }
     ctx.restore();
+    ctx.restore();
+    ctx.save(); ctx.globalCompositeOperation = 'lighter'; const [ox, oy, orr] = holeAt(); glow(ctx, ox, oy + orr * 0.9, orr * 1.5, 'rgba(255,25,10,A)', 0.22); ctx.restore();
   };
+
+  // A tiszta szemével: a párod szemei a résben – a bőr is a sötétbe olvad
+  function eye(ctx, x, y, w, look) {
+    ctx.save();
+    ctx.beginPath(); ctx.moveTo(x - w, y); ctx.quadraticCurveTo(x, y - w * 0.7, x + w, y); ctx.quadraticCurveTo(x, y + w * 0.5, x - w, y); ctx.closePath(); ctx.clip();
+    const wg = ctx.createRadialGradient(x, y, 2, x, y, w); wg.addColorStop(0, '#d9c8c0'); wg.addColorStop(0.7, '#a07068'); wg.addColorStop(1, '#3a1c18');
+    ctx.fillStyle = wg; ctx.fillRect(x - w, y - w, w * 2, w * 2);
+    ctx.strokeStyle = 'rgba(150,20,20,0.5)'; ctx.lineWidth = 0.8;
+    const r = rng(Math.round(x));
+    for (let i = 0; i < 10; i++) { ctx.beginPath(); const a = r() * TAU; ctx.moveTo(x + Math.cos(a) * w, y + Math.sin(a) * w * 0.5); ctx.quadraticCurveTo(x + Math.cos(a) * w * 0.6 + (r() - 0.5) * 10, y + Math.sin(a) * w * 0.3, x + Math.cos(a) * w * 0.38, y + Math.sin(a) * w * 0.2); ctx.stroke(); }
+    const ix = x + look * w * 0.15, ir = w * 0.4;
+    const ig = ctx.createRadialGradient(ix, y, 1, ix, y, ir); ig.addColorStop(0, '#1a0f08'); ig.addColorStop(0.55, '#4a3020'); ig.addColorStop(0.9, '#150a06'); ig.addColorStop(1, '#000');
+    ctx.fillStyle = ig; ctx.beginPath(); ctx.arc(ix, y, ir, 0, TAU); ctx.fill();
+    ctx.fillStyle = '#000'; ctx.beginPath(); ctx.arc(ix, y, ir * 0.66, 0, TAU); ctx.fill();
+    // felső szemhéj árnyéka
+    const lid = ctx.createLinearGradient(0, y - w * 0.5, 0, y - w * 0.05); lid.addColorStop(0, 'rgba(0,0,0,0.85)'); lid.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = lid; ctx.fillRect(x - w, y - w, w * 2, w);
+    ctx.fillStyle = 'rgba(255,240,235,0.9)'; ctx.beginPath(); ctx.arc(ix - ir * 0.28, y - ir * 0.3, ir * 0.12, 0, TAU); ctx.fill();
+    ctx.restore();
+  }
   JUMP.door_face = (ctx, t) => {
-    const [cx, cy] = holeAt();
-    ctx.save(); ctx.beginPath(); ctx.ellipse(cx, cy, 120, 105, 0, 0, TAU); ctx.clip();
-    const g = ctx.createRadialGradient(cx, cy + 30, 10, cx, cy, 150); g.addColorStop(0, '#b06050'); g.addColorStop(1, '#2a0a08');
-    ctx.fillStyle = g; ctx.beginPath(); ctx.ellipse(cx, cy + 10, 95, 120, 0, 0, TAU); ctx.fill();
-    for (const s of [-1, 1]) { ctx.fillStyle = '#eee'; ctx.beginPath(); ctx.ellipse(cx + s * 36, cy - 10, 20, 13, 0, 0, TAU); ctx.fill(); ctx.fillStyle = '#111'; ctx.beginPath(); ctx.arc(cx + s * 36, cy - 10, 4, 0, TAU); ctx.fill(); }
-    ctx.strokeStyle = '#2a0505'; ctx.lineWidth = 6; ctx.beginPath(); ctx.arc(cx, cy + 40, 46, 0.15, Math.PI - 0.15); ctx.stroke();
+    const [jx, jy] = jitter(t, 2);
+    ctx.save();
+    const [hx0, hy0, r] = holeClip(ctx);
+    ctx.fillStyle = '#020101'; ctx.fillRect(hx0 - r * 2, hy0 - r * 2, r * 4, r * 4);
+    const hx = hx0 + jx, hy = hy0 + jy;
+    const sk = ctx.createRadialGradient(hx, hy + r * 0.35, r * 0.05, hx, hy, r * 0.95);
+    sk.addColorStop(0, 'rgba(140,70,58,1)'); sk.addColorStop(0.55, 'rgba(60,22,18,0.9)'); sk.addColorStop(1, 'rgba(5,1,1,0)');
+    ctx.fillStyle = sk; ctx.fillRect(hx - r * 1.2, hy - r * 1.2, r * 2.4, r * 2.4);
+    ctx.globalCompositeOperation = 'overlay'; ctx.globalAlpha = 0.6; ctx.drawImage(TX.fine, hx - r, hy - r, r * 2, r * 2); ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
+    eye(ctx, hx - r * 0.32, hy - r * 0.1, r * 0.22, 0.5); eye(ctx, hx + r * 0.32, hy - r * 0.1, r * 0.22, 0.3);
     ctx.restore();
   };
+
+  // Kardos a kapuház ablakában: sötét sziluett, csak a szemüveg csillan a villámban
   JUMP.window_face = (ctx, t) => {
-    const x = W * (R.windowPos ? R.windowPos[0] : 0.6), y = H * (R.windowPos ? R.windowPos[1] : 0.45);
-    ctx.fillStyle = 'rgba(0,0,0,0.35)'; ctx.fillRect(0, 0, W, H);
-    ctx.save(); ctx.beginPath(); ctx.rect(x, y, 110, 80); ctx.clip();
-    ctx.fillStyle = '#0a0a0c'; ctx.fillRect(x, y, 110, 80);
-    const g = ctx.createRadialGradient(x + 55, y + 60, 2, x + 55, y + 40, 50); g.addColorStop(0, '#c8b8a0'); g.addColorStop(1, '#1a1410');
-    ctx.fillStyle = g; ctx.beginPath(); ctx.ellipse(x + 55, y + 42, 22, 28, 0, 0, TAU); ctx.fill();
-    ctx.fillStyle = 'rgba(230,240,255,0.9)'; ctx.fillRect(x + 42, y + 34, 9, 5); ctx.fillRect(x + 59, y + 34, 9, 5);
-    ctx.strokeStyle = '#3a1a10'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(x + 55, y + 50, 9, 0.2, Math.PI - 0.2); ctx.stroke();
-    ctx.fillStyle = '#b8a890'; ctx.fillRect(x + 82, y + 30 + Math.sin(t * 8) * 4, 10, 22); // integető kéz
+    ctx.fillStyle = 'rgba(0,0,0,0.65)'; ctx.fillRect(0, 0, W, H);
+    const wx = W * 0.27, wy = H * 0.1, ww = W * 0.46, wh = H * 0.7;
+    ctx.fillStyle = '#07080a'; ctx.fillRect(wx - 24, wy - 24, ww + 48, wh + 48);
+    ctx.save(); ctx.beginPath(); ctx.rect(wx, wy, ww, wh); ctx.clip();
+    const flash = Math.max(0, Math.sin(t * 3.1)) ** 3;
+    const bg = ctx.createRadialGradient(wx + ww * 0.7, wy + wh * 0.3, 10, wx + ww * 0.5, wy + wh * 0.5, ww);
+    bg.addColorStop(0, `rgb(${22 + 40 * flash},${26 + 44 * flash},${34 + 50 * flash})`); bg.addColorStop(1, '#020304');
+    ctx.fillStyle = bg; ctx.fillRect(wx, wy, ww, wh);
+    // fej, fül, nyak, vállak – egyetlen sziluett
+    const cx = wx + ww * 0.46, cy = wy + wh * 0.42;
+    ctx.fillStyle = '#010101';
+    ctx.beginPath();
+    ctx.moveTo(cx - ww * 0.5, wy + wh); ctx.quadraticCurveTo(cx - ww * 0.42, cy + 120, cx - 60, cy + 104); ctx.quadraticCurveTo(cx - 44, cy + 80, cx - 40, cy + 62);
+    ctx.bezierCurveTo(cx - 92, cy + 30, cx - 86, cy - 120, cx, cy - 122); ctx.bezierCurveTo(cx + 86, cy - 120, cx + 92, cy + 30, cx + 40, cy + 62);
+    ctx.quadraticCurveTo(cx + 44, cy + 80, cx + 60, cy + 104); ctx.quadraticCurveTo(cx + ww * 0.42, cy + 120, cx + ww * 0.5, wy + wh); ctx.closePath(); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(cx - 84, cy - 6, 12, 22, 0.2, 0, TAU); ctx.ellipse(cx + 84, cy - 6, 12, 22, -0.2, 0, TAU); ctx.fill();
+    // a felemelt kéz sziluettje
+    const hx = cx + ww * 0.3, hy = cy + 40 + Math.sin(t * 6) * 5;
+    ctx.save(); ctx.translate(hx, hy); ctx.rotate(Math.sin(t * 6) * 0.12);
+    ctx.beginPath(); ctx.ellipse(0, 0, 26, 32, 0, 0, TAU); ctx.fill();
+    [[-18, -38, 0.18], [-6, -46, 0.05], [7, -44, -0.05], [19, -36, -0.15]].forEach(([x, y, a]) => { ctx.save(); ctx.translate(x, y + 10); ctx.rotate(a); ctx.beginPath(); ctx.ellipse(0, -14, 6.5, 22, 0, 0, TAU); ctx.fill(); ctx.restore(); });
+    ctx.beginPath(); ctx.ellipse(-28, 6, 7, 18, 0.9, 0, TAU); ctx.fill();
+    ctx.fillRect(-16, 24, 32, 90);
     ctx.restore();
+    // szemüveg: csak a csillanás
+    const g1 = 0.25 + 0.75 * flash;
+    ctx.save(); ctx.globalCompositeOperation = 'lighter';
+    ctx.strokeStyle = `rgba(200,215,235,${0.25 * g1})`; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.ellipse(cx - 28, cy - 18, 21, 15, 0, 0, TAU); ctx.ellipse(cx + 28, cy - 18, 21, 15, 0, 0, TAU); ctx.stroke();
+    glow(ctx, cx - 34, cy - 24, 22, 'rgba(235,245,255,A)', 0.9 * g1); glow(ctx, cx + 22, cy - 24, 18, 'rgba(235,245,255,A)', 0.75 * g1);
+    ctx.restore();
+    // eső az üvegen + tükröződés
+    ctx.strokeStyle = 'rgba(160,180,200,0.22)'; ctx.lineWidth = 1.4;
+    const r = rng(12);
+    for (let i = 0; i < 55; i++) { const x = wx + r() * ww, y = wy + ((r() * wh + t * 50 * (0.5 + r())) % wh); ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + 1, y + 8 + r() * 26); ctx.stroke(); }
+    const rf = ctx.createLinearGradient(wx, wy, wx + ww, wy + wh); rf.addColorStop(0, 'rgba(120,140,170,0.08)'); rf.addColorStop(0.5, 'rgba(0,0,0,0)'); rf.addColorStop(1, 'rgba(120,140,170,0.05)');
+    ctx.fillStyle = rf; ctx.fillRect(wx, wy, ww, wh);
+    ctx.restore();
+    ctx.strokeStyle = '#0d0f12'; ctx.lineWidth = 16; ctx.strokeRect(wx, wy, ww, wh);
   };
+
   JUMP.rat = (ctx, t) => {
-    const p = Math.min(1, t * 3);
-    ctx.save(); ctx.translate(lerp(W * 0.45, W * 0.1, p), lerp(H * 0.7, H * 1.1, p)); ctx.scale(3, 3);
-    ctx.fillStyle = '#050505'; ctx.beginPath(); ctx.ellipse(0, 0, 30, 14, -0.3, 0, TAU); ctx.fill(); ctx.beginPath(); ctx.ellipse(24, -10, 12, 8, -0.3, 0, TAU); ctx.fill();
-    ctx.strokeStyle = '#050505'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(-28, 6); ctx.quadraticCurveTo(-60, 20, -70, 0); ctx.stroke();
+    const p = Math.min(1, t * 1.1);
+    ctx.save(); ctx.translate(lerp(W * 0.7, W * 0.05, p), lerp(H * 0.7, H * 1.08, p)); ctx.scale(4, 4); ctx.rotate(-0.25);
+    ctx.filter = 'blur(1.2px)';
+    ctx.fillStyle = '#030303'; ctx.beginPath(); ctx.ellipse(0, 0, 30, 14, 0, 0, TAU); ctx.fill(); ctx.beginPath(); ctx.ellipse(26, -8, 13, 8, 0.2, 0, TAU); ctx.fill();
+    ctx.beginPath(); ctx.arc(22, -16, 5, 0, TAU); ctx.fill();
+    ctx.strokeStyle = '#030303'; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.moveTo(-28, 4); ctx.quadraticCurveTo(-60, 22, -78, 6); ctx.stroke();
+    ctx.fillStyle = 'rgba(255,220,200,0.9)'; ctx.beginPath(); ctx.arc(32, -11, 1.4, 0, TAU); ctx.fill();
     ctx.restore();
   };
 
@@ -1355,6 +1516,7 @@
     im.src = (root.IMGDATA && root.IMGDATA[name]) || R.imgBase + name + '.jpg';
     return im;
   }
+  R.loadImg = loadImg;
   R.preload = (keys) => (keys || Object.keys(PHOTO)).forEach((k) => PHOTO[k] && loadImg(PHOTO[k].img));
 
   // g: { b: fényerő, c: kontraszt, s: telítettség, sep: szépia, h: színárnyalat, tint: [szín, alfa, mód], night: day-for-night }
@@ -1400,7 +1562,7 @@
   function drawHole(ctx, hx, hy, r) {
     R.holePos = [hx, hy, r];
     const rr = rng(17), N = 26, pts = [];
-    for (let i = 0; i < N; i++) { const a = (i / N) * TAU, q = r * (0.62 + rr() * 0.5) * (i % 3 === 0 ? 1.25 : 1); pts.push([hx + Math.cos(a) * q * 1.15, hy + Math.sin(a) * q]); }
+    let q = r; for (let i = 0; i < N; i++) { const a = (i / N) * TAU + (rr() - 0.5) * 0.15; q = Math.max(r * 0.6, Math.min(r * 1.3, q * 0.6 + r * (0.55 + rr() * 0.75) * 0.4 + (rr() < 0.2 ? r * 0.25 : 0))); pts.push([hx + Math.cos(a) * q * 1.12, hy + Math.sin(a) * q]); }
     ctx.save();
     // behorpadt, kifelé hajló fémperem
     ctx.beginPath(); pts.forEach(([x, y], i) => { const dx = x - hx, dy = y - hy; ctx[i ? 'lineTo' : 'moveTo'](hx + dx * 1.22, hy + dy * 1.22); }); ctx.closePath();
@@ -1454,7 +1616,8 @@
     if (!img) return false;
     const kb = P.kb || [1.04, 1.1, 0, 0];
     const k = 0.5 - 0.5 * Math.cos(t * 0.045);
-    const z = lerp(kb[0], kb[1], k), ox = kb[2] * k * W, oy = kb[3] * k * H;
+    // állandó keret-eltolás + lassú, finom kamerasodródás
+    const z = lerp(kb[0], kb[1], k), ox = kb[2] * W + Math.sin(t * 0.05) * (kb[0] - 1) * 0.15 * W, oy = kb[3] * H;
     const hand = P.hand ? [Math.sin(t * 0.9) * 3 + Math.sin(t * 2.1) * 1.2, Math.cos(t * 0.7) * 2.5] : [0, 0];
     let shake = [0, 0];
     if (P.gen && S.genOn) shake = [Math.sin(t * 80) * 0.8, Math.cos(t * 97) * 0.6];
@@ -1467,6 +1630,15 @@
     const f = P.fx || {};
     if (f.window) R.windowPos = f.window;
     if (f.mastDraw) mast(ctx, f.mastDraw[0] * W, f.mastDraw[1] * H, f.mastDraw[2] * H, f.mastDraw[3], f.mastC || '#05070a', t, false);
+    if (f.plate) {
+      const [px, py, pw, ph, txt] = f.plate;
+      ctx.save(); ctx.fillStyle = '#0f5a32'; ctx.fillRect((px - pw / 2) * W, (py - ph / 2) * H, pw * W, ph * H);
+      ctx.strokeStyle = 'rgba(230,240,230,0.7)'; ctx.lineWidth = 2; ctx.strokeRect((px - pw / 2) * W + 4, (py - ph / 2) * H + 4, pw * W - 8, ph * H - 8);
+      ctx.fillStyle = '#eef4ee'; ctx.font = `600 ${Math.round(ph * H * 0.5)}px "Oswald", sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText(txt, px * W, py * H + 1);
+      ctx.globalCompositeOperation = 'multiply'; ctx.globalAlpha = 0.5; ctx.drawImage(TX.n1, (px - pw / 2) * W, (py - ph / 2) * H, pw * W, ph * H);
+      ctx.restore();
+    }
     if (f.hole) drawHole(ctx, f.hole[0] * W, f.hole[1] * H, f.hole[2] * W);
     if (f.sign) {
       const [sx, sy, txt] = f.sign;
@@ -1665,7 +1837,7 @@ void main(){
     S.bg = key; S.t0 = performance.now() / 1000; S.lightning = 0;
   };
 
-  R.flash = (col, a) => { if (S.reduce) a = Math.min(a || 1, 0.25); S.flash = a || 0.9; S.flashCol = col === 'red' ? [0.8, 0.05, 0.03] : [1, 1, 1]; };
+  R.flash = (col, a) => { if (S.reduce) a = Math.min(a || 1, 0.25); S.flash = Math.min(col === 'red' ? 0.55 : 0.85, a || 0.85); S.flashCol = col === 'red' ? [0.7, 0.04, 0.02] : [1, 1, 1]; };
   R.shake = (a) => { S.shake = Math.max(S.shake, S.reduce ? (a || 1) * 0.3 : a || 1); };
   R.lightning = () => { S.lightning = S.reduce ? 0.2 : 0.8; S.boltSeed = (Math.random() * 1e6) | 0; S.boltX = W * (0.2 + Math.random() * 0.6); };
   R.jump = (kind, ms) => { if (!JUMP[kind]) return; S.jump = kind; S.jumpT0 = performance.now() / 1000; S.jumpUntil = performance.now() + (ms || 650); R.shake(1.4); };
@@ -1675,7 +1847,9 @@ void main(){
   R.setVhs = (on) => { S.vhs = on ? 1 : 0; };
   R.calm = () => { S.calm = 1; S.hallu = 0; S.halluTarget = 0; };
 
+  R.stats = { paint: 0 };
   function loop(ms) {
+    const tp0 = performance.now();
     const now = ms / 1000;
     const t = Math.max(0, now - S.t0);
     // helyszín
@@ -1686,22 +1860,34 @@ void main(){
     } catch (e) { console.error(e); SC.black(sctx); }
     sctx.restore();
     // ghost: perifériás alak
-    if (performance.now() < S.ghostUntil) { sctx.save(); sctx.globalAlpha = 0.7; creature(sctx, S.ghostX, H * 1.02, H * 0.85, now, 0.8); sctx.restore(); }
+    if (performance.now() < S.ghostUntil) { sctx.save(); sctx.globalAlpha = 0.55; shadowBeing(sctx, S.ghostX, H * 1.05, H * 0.9, now, { calm: 1 }); sctx.restore(); }
     // villám
     const outdoor = PHOTO[S.bg] ? !!(PHOTO[S.bg].fx || {}).storm : /storm|ravine|forest|gate|tower|court/.test(S.bg);
     if (S.lightning > 0.05 && S.boltSeed && outdoor) bolt(sctx, S.boltX, S.boltSeed, S.lightning);
     // ijesztés
-    if (S.jump && performance.now() < S.jumpUntil) { sctx.save(); JUMP[S.jump](sctx, now - S.jumpT0); sctx.restore(); }
-    else S.jump = null;
+    if (S.jump && performance.now() < S.jumpUntil) {
+      sctx.save(); JUMP[S.jump](sctx, now - S.jumpT0); sctx.restore();
+      if ((S.jump === 'door_creature' || S.jump === 'door_face') && R.holePos) {
+        const k = 1 + 1.3 * Math.min(1, (now - S.jumpT0) / 0.18);
+        const tmp = R._ztmp || (R._ztmp = mk(W, H)); const tx = tmp.getContext('2d');
+        tx.clearRect(0, 0, W, H); tx.drawImage(scene2d, 0, 0);
+        const [hx, hy] = R.holePos;
+        sctx.save(); sctx.fillStyle = '#000'; sctx.fillRect(0, 0, W, H);
+        sctx.translate(W / 2, H / 2); sctx.scale(k, k); sctx.translate(-hx, -hy); sctx.drawImage(tmp, 0, 0); sctx.restore();
+      }
+    } else S.jump = null;
     // áttűnés az előző helyszínről
     if (S.prev && S.fade < 1) {
       S.fade = Math.min(1, (performance.now() - S.fadeT0) / 900);
       sctx.save(); sctx.globalAlpha = 1 - smooth(S.fade); sctx.drawImage(prevC, 0, 0); sctx.restore();
     }
-    // paraméterek simítása
-    S.hallu += (S.halluTarget - S.hallu) * 0.02;
-    S.dark += (S.darkTarget - S.dark) * 0.06;
-    S.flash *= 0.88; S.lightning *= 0.86; S.shake *= 0.9; S.calm *= 0.995;
+    R.stats.paint = R.stats.paint * 0.9 + (performance.now() - tp0) * 0.1;
+    // paraméterek simítása – időalapú, hogy lassú gépen se ragadjon be egy villanás
+    const dt = Math.min(0.1, Math.max(0.001, now - (S.lastNow || now))); S.lastNow = now;
+    const f60 = dt * 60;
+    S.hallu += (S.halluTarget - S.hallu) * (1 - Math.pow(0.98, f60));
+    S.dark += (S.darkTarget - S.dark) * (1 - Math.pow(0.94, f60));
+    S.flash *= Math.pow(0.88, f60); S.lightning *= Math.pow(0.86, f60); S.shake *= Math.pow(0.9, f60); S.calm *= Math.pow(0.995, f60);
     if (S.focus) S.focus.p = Math.min(1, S.focus.p + 0.01);
     const sx = (Math.random() - 0.5) * 0.012 * S.shake, sy = (Math.random() - 0.5) * 0.012 * S.shake;
     if (glx) {
