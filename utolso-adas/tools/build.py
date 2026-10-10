@@ -26,5 +26,13 @@ html = re.sub(r'<script src="([^"]+)"></script>', inline, html)
 os.makedirs('dist', exist_ok=True)
 out = 'dist/Az-utolso-adas.html'
 open(out, 'w', encoding='utf-8').write(html)
+# claude.ai Artifact változat: a közzététel saját vázba csomagol, ezért csak a tartalom kell
+head = re.search(r'<head>(.*?)</head>', html, re.S).group(1)
+body = re.search(r'<body>(.*?)</body>', html, re.S).group(1)
+head = re.sub(r'<meta charset="utf-8">\s*|<meta name="viewport"[^>]*>\s*', '', head)
+title = re.search(r'<title>.*?</title>', head).group(0)
+head = head.replace(title, '')
+open('dist/artifact.html', 'w', encoding='utf-8').write(title + '\n' + head.strip() + '\n' + body.strip() + '\n')
+print('dist/artifact.html', os.path.getsize('dist/artifact.html') // 1024, 'KB')
 print('assets/imgdata.js', os.path.getsize('assets/imgdata.js') // 1024, 'KB')
 print(out, os.path.getsize(out) // 1024, 'KB')

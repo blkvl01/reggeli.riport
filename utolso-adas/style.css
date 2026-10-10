@@ -1,5 +1,7 @@
 /* AZ UTOLSÓ ADÁS – felület */
+/* Szándékosan egytémás, sötét filmes kinézet: minden szín explicit. */
 :root {
+  color-scheme: dark;
   --ink: #e9e6df;
   --dim: #9a968c;
   --red: #d8382c;
