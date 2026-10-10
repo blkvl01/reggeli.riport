@@ -198,7 +198,7 @@ html, body { margin: 0; height: 100%; background: #000; color: var(--ink); overf
 .foot { position: absolute; bottom: 9%; font: 300 .72em var(--cond); letter-spacing: .35em; color: rgba(255,255,255,.35); text-transform: uppercase; }
 .press { text-align: center; }
 .blink { margin-top: 3em; font: 300 .9em var(--cond); letter-spacing: .5em; text-transform: uppercase; animation: rec 1.6s infinite; }
-.panel { width: 62%; max-height: 86%; overflow: auto; padding: 2.2em 2.6em; background: rgba(8,9,11,.82); border: 1px solid var(--line); backdrop-filter: blur(8px); }
+.panel { width: 62%; max-height: 90%; overflow: auto; padding: 2.2em 2.6em; background: rgba(8,9,11,.82); border: 1px solid var(--line); backdrop-filter: blur(8px); }
 .panel h2 { margin: 0 0 1em; font: 200 2em var(--cond); letter-spacing: .25em; text-transform: uppercase; }
 .panel p { font: 300 1em/1.6 var(--sans); color: #d8d3c8; }
 .panel .small { font-size: .85em; color: var(--dim); }
@@ -206,7 +206,8 @@ html, body { margin: 0; height: 100%; background: #000; color: var(--ink); overf
 .ctrl-p h3 { font: 500 .9em var(--cond); letter-spacing: .3em; margin: 0 0 .4em; }
 .ctrl-p .dev { color: var(--dim); font-size: .85em; margin-bottom: .8em; }
 .keys { display: flex; align-items: center; gap: .4em; margin: .45em 0; font-size: .9em; color: #cfc8ba; }
-.set-row { display: flex !important; justify-content: space-between; width: 100%; font-size: .95em !important; letter-spacing: .18em !important; border-bottom: 1px solid var(--line); padding: .55em 0 !important; }
+#menu .set-row { display: flex; justify-content: space-between; box-sizing: border-box; width: 100%; font-size: .9em; letter-spacing: .16em; border-bottom: 1px solid var(--line); padding: .5em 0; }
+#menu .set-row.focus::before { left: -1.2em; }
 .set-row b { font-weight: 500; color: var(--amber); }
 .gallery { display: grid; grid-template-columns: repeat(5, 1fr); gap: .6em; }
 .gal { padding: .8em .7em; border: 1px solid var(--line); background: rgba(255,255,255,.02); min-height: 6.2em; display: flex; flex-direction: column; gap: .3em; }

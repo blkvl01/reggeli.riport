@@ -209,7 +209,7 @@ html, body { margin: 0; height: 100%; background: #000; color: var(--ink); overf
 .foot { position: absolute; bottom: 9%; font: 300 .72em var(--cond); letter-spacing: .35em; color: rgba(255,255,255,.35); text-transform: uppercase; }
 .press { text-align: center; }
 .blink { margin-top: 3em; font: 300 .9em var(--cond); letter-spacing: .5em; text-transform: uppercase; animation: rec 1.6s infinite; }
-.panel { width: 62%; max-height: 86%; overflow: auto; padding: 2.2em 2.6em; background: rgba(8,9,11,.82); border: 1px solid var(--line); backdrop-filter: blur(8px); }
+.panel { width: 62%; max-height: 90%; overflow: auto; padding: 2.2em 2.6em; background: rgba(8,9,11,.82); border: 1px solid var(--line); backdrop-filter: blur(8px); }
 .panel h2 { margin: 0 0 1em; font: 200 2em var(--cond); letter-spacing: .25em; text-transform: uppercase; }
 .panel p { font: 300 1em/1.6 var(--sans); color: #d8d3c8; }
 .panel .small { font-size: .85em; color: var(--dim); }
@@ -217,7 +217,8 @@ html, body { margin: 0; height: 100%; background: #000; color: var(--ink); overf
 .ctrl-p h3 { font: 500 .9em var(--cond); letter-spacing: .3em; margin: 0 0 .4em; }
 .ctrl-p .dev { color: var(--dim); font-size: .85em; margin-bottom: .8em; }
 .keys { display: flex; align-items: center; gap: .4em; margin: .45em 0; font-size: .9em; color: #cfc8ba; }
-.set-row { display: flex !important; justify-content: space-between; width: 100%; font-size: .95em !important; letter-spacing: .18em !important; border-bottom: 1px solid var(--line); padding: .55em 0 !important; }
+#menu .set-row { display: flex; justify-content: space-between; box-sizing: border-box; width: 100%; font-size: .9em; letter-spacing: .16em; border-bottom: 1px solid var(--line); padding: .5em 0; }
+#menu .set-row.focus::before { left: -1.2em; }
 .set-row b { font-weight: 500; color: var(--amber); }
 .gallery { display: grid; grid-template-columns: repeat(5, 1fr); gap: .6em; }
 .gal { padding: .8em .7em; border: 1px solid var(--line); background: rgba(255,255,255,.02); min-height: 6.2em; display: flex; flex-direction: column; gap: .3em; }
@@ -4032,6 +4033,37 @@ window.IMGDATA = {"archive": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD
     for (let i = 0; i < words; i++) later(i * 520, () => tone('sine', 600 + (i % 3) * 120, 600 + (i % 3) * 120, 0.25, 0.06, 0.4));
   };
   A.stopSpeech = () => { if (root.speechSynthesis) speechSynthesis.cancel(); };
+
+  // Gépi szinkron: magyar hangok szereplőnként (Edge-ben természetes neurális hangok)
+  function huVoices() {
+    if (!root.speechSynthesis) return { male: null, female: null };
+    const vs = speechSynthesis.getVoices().filter((v) => /^hu/i.test(v.lang));
+    const rank = (v) => (/natural|online|neural/i.test(v.name) ? 0 : 1);
+    vs.sort((a, b) => rank(a) - rank(b));
+    return {
+      male: vs.find((v) => /tam[aá]s|szabolcs|male|férfi/i.test(v.name) && !/female/i.test(v.name)) || null,
+      female: vs.find((v) => /no[eé]mi|female|nő/i.test(v.name)) || null,
+    };
+  }
+  A.hasVoices = () => { const v = huVoices(); return !!(v.male || v.female); };
+  const ROLEVOICE = {
+    M: ['male', 1.0, 1.05], D: ['male', 1.08, 1.08], G: ['male', 1.12, 1.1], K: ['male', 0.78, 0.9], S: ['male', 0.68, 0.84],
+    L: ['female', 1.0, 1.05], woman: ['female', 0.92, 1.0], man: ['male', 0.9, 0.95], young: ['male', 1.15, 1.15], old: ['male', 0.75, 0.9], dani: ['male', 1.08, 1.0],
+  };
+  // Elindít egy mondatot; Promise, ami a mondat végén teljesül (vagy null, ha nincs megfelelő hang)
+  A.speakLine = function (text, role, voiceKind) {
+    if (!root.speechSynthesis) return null;
+    const spec = ROLEVOICE[voiceKind] || ROLEVOICE[role];
+    if (!spec) return null;
+    const v = huVoices()[spec[0]];
+    if (!v) return null;
+    try {
+      speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(text.replace(/[„”"]/g, ''));
+      u.voice = v; u.lang = v.lang; u.pitch = spec[1]; u.rate = spec[2]; u.volume = Math.min(1, vol.master * 1.1);
+      return new Promise((res) => { u.onend = res; u.onerror = res; speechSynthesis.speak(u); setTimeout(res, 30000); });
+    } catch (e) { return null; }
+  };
   A.ready = () => !!ctx;
 })(window);
 
@@ -6043,7 +6075,7 @@ void main(){
 
   const G = (root.G = {
     s: null, paused: false, busy: false, auto: false, fast: false,
-    settings: Object.assign({ master: 0.9, music: 0.75, sfx: 0.9, textSpeed: 1, autoAdvance: true, qte: 1, reduceFlash: false, grain: 1 }, store.get(KEY.set, {})),
+    settings: Object.assign({ master: 0.9, music: 0.75, sfx: 0.9, textSpeed: 1, autoAdvance: true, qte: 1, reduceFlash: false, grain: 1, voice: false }, store.get(KEY.set, {})),
   });
   const params = new URLSearchParams(location.search);
   G.auto = params.has('auto'); // teszt: automatikus végigjátszás
@@ -6125,7 +6157,9 @@ void main(){
     nm.textContent = nmText; nm.style.color = colorOf(who);
     subs.className = 'show ' + (who === 'N' ? 'narr' : '') + (who === 'R' || b.rec ? ' rec' : '') + (who === 'NUM' ? ' num' : '');
     if (who === 'NUM') AU.speakNumbers(b.text.replace(/[^\wáéíóöőúüűÁÉÍÓÖŐÚÜŰ .]/g, ''));
-    if (who === 'R' || b.rec) AU.garble(b.text, b.voice);
+    let speech = null;
+    if (G.settings.voice && !G.fast && who !== 'N' && who !== 'NUM') speech = AU.speakLine(b.text, who, b.voice);
+    if ((who === 'R' || b.rec) && !speech) AU.garble(b.text, b.voice);
     // írógép-hatás
     const text = b.text;
     tx.textContent = '';
@@ -6141,7 +6175,11 @@ void main(){
     tx.textContent = text;
     subs.classList.add('done');
     const autoMs = G.settings.autoAdvance ? Math.max(1800, text.length * 55) / (G.settings.textSpeed || 1) : 0;
-    await waitAdvance(allowed, autoMs);
+    if (speech && G.settings.autoAdvance) {
+      // szinkronnál a mondat végét várjuk meg (vagy egy gombnyomást)
+      await Promise.race([speech.then(() => wait(450)), waitAdvance(allowed, 0)]);
+    } else await waitAdvance(allowed, autoMs);
+    if (speech) AU.stopSpeech();
     subs.classList.remove('done');
   }
   function hideSubs() { UI.subs.className = ''; }
@@ -6577,7 +6615,7 @@ void main(){
       <div class="sum-side"><h3>Az éjszaka mérlege</h3>${facts}<h3>Befejezések · ${got.length} / 10</h3><div class="gallery">${gal}</div></div></div>
       <div class="menu-list row"><button data-a="new">Új éjszaka</button><button data-a="title">Főmenü</button></div></div>`, {
       new: () => newGame(), title: () => titleScreen(),
-    }, 'summary');
+    }, 'summary', 2500);
   }
 
   async function credits(sting) {
@@ -6603,8 +6641,9 @@ void main(){
 
   // ------------------------------------------------------------ menük
   let menuOff = null;
-  function openMenu(html, actions, cls) {
+  function openMenu(html, actions, cls, lockMs) {
     G.menuOpen = true;
+    const lockUntil = performance.now() + (lockMs || 0);
     UI.menu.className = 'show ' + (cls || '');
     UI.menu.innerHTML = html;
     const btns = [...UI.menu.querySelectorAll('button')];
@@ -6616,6 +6655,7 @@ void main(){
       b.addEventListener('click', () => fire(b));
     });
     function fire(b) {
+      if (performance.now() < lockUntil) return;
       AU.init(); AU.sfx('select');
       const a = b.dataset.a;
       if (actions[a]) actions[a](b);
@@ -6698,10 +6738,12 @@ void main(){
       ['qte', 'Reakcióidő (QTE)', [1.6, 1.25, 1, 0.8], (v) => ({ 1.6: 'kényelmes', 1.25: 'könnyű', 1: 'normál', 0.8: 'nehéz' })[v]],
       ['reduceFlash', 'Villogás csökkentése', [false, true], (v) => (v ? 'be' : 'ki')],
       ['grain', 'Filmszemcse', [0, 0.5, 1, 1.5], (v) => ({ 0: 'ki', 0.5: 'gyenge', 1: 'normál', 1.5: 'erős' })[v]],
+      ['voice', 'Gépi szinkron (magyar beszédhang)', [false, true], (v) => (v ? (AU.hasVoices() ? 'be' : 'be – nincs magyar hang') : 'ki')],
     ];
     const render = () => {
       openMenu(`<div class="panel settings"><h2>Beállítások</h2>${rows.map(([k, l, , f]) => `<button data-a="${k}" class="set-row"><span>${l}</span><b>${f(st[k])}</b></button>`).join('')}
         <button data-a="fs" class="set-row"><span>Teljes képernyő</span><b>${document.fullscreenElement ? 'be' : 'ki'}</b></button>
+        <p class="small">Tipp: a gépi szinkron Microsoft Edge-ben szól a legtermészetesebben (Noémi és Tamás hangja). Más böngészőben a rendszer magyar hangja szól, ha van.</p>
         <div class="menu-list row"><button data-a="back">Vissza</button></div></div>`, Object.assign({
         back: () => { store.set(KEY.set, st); back(); },
         fs: () => { if (document.fullscreenElement) document.exitFullscreen(); else document.documentElement.requestFullscreen().catch(() => {}); setTimeout(render, 300); },

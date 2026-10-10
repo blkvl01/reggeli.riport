@@ -415,5 +415,36 @@
     for (let i = 0; i < words; i++) later(i * 520, () => tone('sine', 600 + (i % 3) * 120, 600 + (i % 3) * 120, 0.25, 0.06, 0.4));
   };
   A.stopSpeech = () => { if (root.speechSynthesis) speechSynthesis.cancel(); };
+
+  // Gépi szinkron: magyar hangok szereplőnként (Edge-ben természetes neurális hangok)
+  function huVoices() {
+    if (!root.speechSynthesis) return { male: null, female: null };
+    const vs = speechSynthesis.getVoices().filter((v) => /^hu/i.test(v.lang));
+    const rank = (v) => (/natural|online|neural/i.test(v.name) ? 0 : 1);
+    vs.sort((a, b) => rank(a) - rank(b));
+    return {
+      male: vs.find((v) => /tam[aá]s|szabolcs|male|férfi/i.test(v.name) && !/female/i.test(v.name)) || null,
+      female: vs.find((v) => /no[eé]mi|female|nő/i.test(v.name)) || null,
+    };
+  }
+  A.hasVoices = () => { const v = huVoices(); return !!(v.male || v.female); };
+  const ROLEVOICE = {
+    M: ['male', 1.0, 1.05], D: ['male', 1.08, 1.08], G: ['male', 1.12, 1.1], K: ['male', 0.78, 0.9], S: ['male', 0.68, 0.84],
+    L: ['female', 1.0, 1.05], woman: ['female', 0.92, 1.0], man: ['male', 0.9, 0.95], young: ['male', 1.15, 1.15], old: ['male', 0.75, 0.9], dani: ['male', 1.08, 1.0],
+  };
+  // Elindít egy mondatot; Promise, ami a mondat végén teljesül (vagy null, ha nincs megfelelő hang)
+  A.speakLine = function (text, role, voiceKind) {
+    if (!root.speechSynthesis) return null;
+    const spec = ROLEVOICE[voiceKind] || ROLEVOICE[role];
+    if (!spec) return null;
+    const v = huVoices()[spec[0]];
+    if (!v) return null;
+    try {
+      speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(text.replace(/[„”"]/g, ''));
+      u.voice = v; u.lang = v.lang; u.pitch = spec[1]; u.rate = spec[2]; u.volume = Math.min(1, vol.master * 1.1);
+      return new Promise((res) => { u.onend = res; u.onerror = res; speechSynthesis.speak(u); setTimeout(res, 30000); });
+    } catch (e) { return null; }
+  };
   A.ready = () => !!ctx;
 })(window);

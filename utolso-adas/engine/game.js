@@ -14,7 +14,7 @@
 
   const G = (root.G = {
     s: null, paused: false, busy: false, auto: false, fast: false,
-    settings: Object.assign({ master: 0.9, music: 0.75, sfx: 0.9, textSpeed: 1, autoAdvance: true, qte: 1, reduceFlash: false, grain: 1 }, store.get(KEY.set, {})),
+    settings: Object.assign({ master: 0.9, music: 0.75, sfx: 0.9, textSpeed: 1, autoAdvance: true, qte: 1, reduceFlash: false, grain: 1, voice: false }, store.get(KEY.set, {})),
   });
   const params = new URLSearchParams(location.search);
   G.auto = params.has('auto'); // teszt: automatikus végigjátszás
@@ -96,7 +96,9 @@
     nm.textContent = nmText; nm.style.color = colorOf(who);
     subs.className = 'show ' + (who === 'N' ? 'narr' : '') + (who === 'R' || b.rec ? ' rec' : '') + (who === 'NUM' ? ' num' : '');
     if (who === 'NUM') AU.speakNumbers(b.text.replace(/[^\wáéíóöőúüűÁÉÍÓÖŐÚÜŰ .]/g, ''));
-    if (who === 'R' || b.rec) AU.garble(b.text, b.voice);
+    let speech = null;
+    if (G.settings.voice && !G.fast && who !== 'N' && who !== 'NUM') speech = AU.speakLine(b.text, who, b.voice);
+    if ((who === 'R' || b.rec) && !speech) AU.garble(b.text, b.voice);
     // írógép-hatás
     const text = b.text;
     tx.textContent = '';
@@ -112,7 +114,11 @@
     tx.textContent = text;
     subs.classList.add('done');
     const autoMs = G.settings.autoAdvance ? Math.max(1800, text.length * 55) / (G.settings.textSpeed || 1) : 0;
-    await waitAdvance(allowed, autoMs);
+    if (speech && G.settings.autoAdvance) {
+      // szinkronnál a mondat végét várjuk meg (vagy egy gombnyomást)
+      await Promise.race([speech.then(() => wait(450)), waitAdvance(allowed, 0)]);
+    } else await waitAdvance(allowed, autoMs);
+    if (speech) AU.stopSpeech();
     subs.classList.remove('done');
   }
   function hideSubs() { UI.subs.className = ''; }
@@ -548,7 +554,7 @@
       <div class="sum-side"><h3>Az éjszaka mérlege</h3>${facts}<h3>Befejezések · ${got.length} / 10</h3><div class="gallery">${gal}</div></div></div>
       <div class="menu-list row"><button data-a="new">Új éjszaka</button><button data-a="title">Főmenü</button></div></div>`, {
       new: () => newGame(), title: () => titleScreen(),
-    }, 'summary');
+    }, 'summary', 2500);
   }
 
   async function credits(sting) {
@@ -574,8 +580,9 @@
 
   // ------------------------------------------------------------ menük
   let menuOff = null;
-  function openMenu(html, actions, cls) {
+  function openMenu(html, actions, cls, lockMs) {
     G.menuOpen = true;
+    const lockUntil = performance.now() + (lockMs || 0);
     UI.menu.className = 'show ' + (cls || '');
     UI.menu.innerHTML = html;
     const btns = [...UI.menu.querySelectorAll('button')];
@@ -587,6 +594,7 @@
       b.addEventListener('click', () => fire(b));
     });
     function fire(b) {
+      if (performance.now() < lockUntil) return;
       AU.init(); AU.sfx('select');
       const a = b.dataset.a;
       if (actions[a]) actions[a](b);
@@ -669,10 +677,12 @@
       ['qte', 'Reakcióidő (QTE)', [1.6, 1.25, 1, 0.8], (v) => ({ 1.6: 'kényelmes', 1.25: 'könnyű', 1: 'normál', 0.8: 'nehéz' })[v]],
       ['reduceFlash', 'Villogás csökkentése', [false, true], (v) => (v ? 'be' : 'ki')],
       ['grain', 'Filmszemcse', [0, 0.5, 1, 1.5], (v) => ({ 0: 'ki', 0.5: 'gyenge', 1: 'normál', 1.5: 'erős' })[v]],
+      ['voice', 'Gépi szinkron (magyar beszédhang)', [false, true], (v) => (v ? (AU.hasVoices() ? 'be' : 'be – nincs magyar hang') : 'ki')],
     ];
     const render = () => {
       openMenu(`<div class="panel settings"><h2>Beállítások</h2>${rows.map(([k, l, , f]) => `<button data-a="${k}" class="set-row"><span>${l}</span><b>${f(st[k])}</b></button>`).join('')}
         <button data-a="fs" class="set-row"><span>Teljes képernyő</span><b>${document.fullscreenElement ? 'be' : 'ki'}</b></button>
+        <p class="small">Tipp: a gépi szinkron Microsoft Edge-ben szól a legtermészetesebben (Noémi és Tamás hangja). Más böngészőben a rendszer magyar hangja szól, ha van.</p>
         <div class="menu-list row"><button data-a="back">Vissza</button></div></div>`, Object.assign({
         back: () => { store.set(KEY.set, st); back(); },
         fs: () => { if (document.fullscreenElement) document.exitFullscreen(); else document.documentElement.requestFullscreen().catch(() => {}); setTimeout(render, 300); },
